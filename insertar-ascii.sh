@@ -10,7 +10,7 @@ if [ ! -f "$script_file" ]; then
 	exit
 fi
 
-selected=$(rofi -dmenu -i < "$script_file")
+selected=$(rofi -dmenu -l 10 -i < "$script_file")
 if [ -z "$selected" ]; then
 	exit
 fi
