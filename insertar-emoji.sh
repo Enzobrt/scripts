@@ -4,10 +4,10 @@
 # Configurar teclado para que no haya problemas
 setxkbmap es
 
-script_file="$HOME/Documents/Programación/scripts/tabla_ascii.txt"
+script_file="$HOME/Documents/Programación/scripts/emoji.txt"
 if [ ! -f "$script_file" ]; then
-	echo "No hay archivo con los símbolos" ":/"
-	notify-send "No hay archivo con los símbolos" ":/"
+	echo "No hay archivo con los emojis" ":/"
+	notify-send "No hay archivo con los emojis" ":/"
 	exit
 fi
 
