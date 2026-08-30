@@ -1,0 +1,4 @@
+# Lista series 2026
+- Alien earth: t1 ep1
+- Lo que hacemos en las sombras: t1-ep1
+- Lo que hacemos en las sombras: t1-ep2

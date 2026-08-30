@@ -33,19 +33,18 @@ def remove_emojis(text):
     return emoji_pattern.sub('', text)
 
 
-def write_file_list(file_name: str, list: list):
-    with open(file_name, "w") as file:
-        match file_name:
-            case "lista-pelis.md":
-                file.write("# Pelis\n")
-            case "lista-series.md":
-                file.write("# Series\n")
-
-        for line in list:
-            line = line.strip()
-            file.write("- ")
-            file.write(line)
-            file.write("\n")
+def write_file_list(file_name: str, pelis_por_año: dict):
+    dict_keys = pelis_por_año.keys()
+    for key in dict_keys:
+        pelis_por_año[año].sort()
+        with open(f"{file_name}-{key}.md", "w") as file:
+            titulo = file_name.replace("-", " ").capitalize()
+            file.write(f"# {titulo} {key}\n")
+            for line in pelis_por_año[key]:
+                line = line.strip()
+                file.write("- ")
+                file.write(line)
+                file.write("\n")
 
 
 def leer_archivo(archivo):
@@ -165,16 +164,12 @@ for i in sorted_files:
     for cinematografía in pelis:
         lista_pelis_año[año].append(cinematografía)
 
-    lista_pelis.sort()
-
     # Series por año
     if año not in lista_series_año.keys():
         lista_series_año[año] = []
 
     for episodio in series:
         lista_series_año[año].append(episodio)
-
-    lista_series.sort()
 
     # Activaddes
     for acto in actividades:
@@ -209,8 +204,8 @@ for i in sorted_files:
 
 
 # Exportar como archivo
-write_file_list("lista-pelis.md", lista_pelis)
-write_file_list("lista-series.md", lista_series)
+write_file_list("lista-pelis", lista_pelis_año)
+write_file_list("lista-series", lista_series_año)
 
 # Graph
 despertarse_df = pd.DataFrame(lista_despertarse, columns=[
@@ -251,7 +246,7 @@ plt.gca().invert_yaxis()
 
 # Gradiente azul → amarillo → azul
 n = 512
-alpha = 0
+alpha = -0.1
 azul = np.array([0, 0, 1])
 amarillo = np.array([1, 1, 0])
 
@@ -264,16 +259,21 @@ gradient = azul * dist[:, None] + amarillo * (1 - dist[:, None])
 # --- Plot ---
 xlim = ax.get_xlim()
 ylim = ax.get_ylim()
-ax.imshow(gradient[:, None, :], aspect='auto', extent=[xlim[0], xlim[1], ylim[0], ylim[1]], origin='lower', alpha=0.5, zorder=-1)
+ax.imshow(gradient[:, None, :], aspect='auto', extent=[
+          xlim[0], xlim[1], ylim[0], ylim[1]], origin='lower', alpha=0.5, zorder=-1)
 
-# Plot graph
+# Mostrar grafica
 mplcursors.cursor(ax, hover=True)  # ← tooltip al pasar el ratón
 ax.legend()
 
 # Print values
-print(f"Pelis:\n{lista_pelis_año}\n\nSeries:\n{lista_series_año}\n\nActividades:\n{
-      lista_actividades}\n\nHora de despertarse:\n{despertarse_df}\nHora de dormir:{dormir_df}")
+# print(f"Pelis:\n{lista_pelis_año}\n")
+# print(f"Series:\n{lista_series_año}\n")
+print(f"Actividades:\n{lista_actividades}\n")
+print(f"{despertarse_df}\n{dormir_df}")
 print(f"\nNº archivos encontrados: {archivos_encontrados}")
+
+# Guardar grafica
 plt.savefig('mimir-graph.svg', dpi=300)
 print("(Plot saved!)")
 
