@@ -9,6 +9,38 @@ echo "       NixOS Configuration Update"
 echo "======================================"
 echo
 
+# Check if there are changes in the configuration
+if git diff --quiet && git diff --cached --quiet && [ -z "$(git status --porcelain)" ]; then
+    echo "No configuration changes detected, exiting."
+    exit 0
+fi
+
+echo "Changes detected:"
+echo "$diff"
+
+echo "→ Formating files"
+echo
+
+alejandra . &>/dev/null \
+  || {
+    alejandra .
+    echo "❌ Formatting failed!"
+    exit 1
+  }
+
+echo "✅ Formatting completed."
+echo
+
+# Stage formatted changes
+git add /etc/nixos/
+
+echo "→ Added changes"
+echo
+
+echo "→ Changes:"
+git diff --cached -U0 '*.nix'
+echo
+
 echo "→ Ejecutando dry-build..."
 echo
 
@@ -34,9 +66,14 @@ echo
 echo "→ Aplicando configuración..."
 echo
 
-sudo nixos-rebuild switch --flake "$FLAKE"
+sudo nixos-rebuild switch --flake "$FLAKE" &>nixos-switch.log || (cat nixos-switch.log | grep --color error && exit 1)
 
-echo
 echo "======================================"
 echo "       ✅ NixOS actualizado"
 echo "======================================"
+echo
+
+notify-send -e "NixOS Rebuilt Correctly!" \
+    --icon=software-update-available
+
+echo "→ Generación actual: $(readlink /nix/var/nix/profiles/system | cut -d- -f2)"
