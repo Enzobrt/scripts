@@ -2,6 +2,8 @@
 
 set -e
 
+cd /etc/nixos/
+
 FLAKE="/etc/nixos#nixos"
 
 echo "======================================"
@@ -16,7 +18,7 @@ if git diff --quiet && git diff --cached --quiet && [ -z "$(git status --porcela
 fi
 
 echo "Changes detected:"
-echo "$diff"
+echo "$(git status --porcelain)"
 
 echo "→ Formating files"
 echo
@@ -32,13 +34,9 @@ echo "✅ Formatting completed."
 echo
 
 # Stage formatted changes
-git add /etc/nixos/
+git add /etc/nixos/*
 
 echo "→ Added changes"
-echo
-
-echo "→ Changes:"
-git diff --cached -U0 '*.nix'
 echo
 
 echo "→ Ejecutando dry-build..."
@@ -66,6 +64,7 @@ echo
 echo "→ Aplicando configuración..."
 echo
 
+#sudo nixos-rebuild switch --flake "$FLAKE"
 sudo nixos-rebuild switch --flake "$FLAKE" &>nixos-switch.log || (cat nixos-switch.log | grep --color error && exit 1)
 
 echo "======================================"
@@ -77,3 +76,5 @@ notify-send -e "NixOS Rebuilt Correctly!" \
     --icon=software-update-available
 
 echo "→ Generación actual: $(readlink /nix/var/nix/profiles/system | cut -d- -f2)"
+
+git add /etc/nixos/nixos-switch.log
