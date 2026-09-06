@@ -77,4 +77,4 @@ notify-send -e "NixOS Rebuilt Correctly!" \
 
 echo "→ Generación actual: $(readlink /nix/var/nix/profiles/system | cut -d- -f2)"
 
-git add /etc/nixos/nixos-switch.log
+git add /etc/nixos/*
