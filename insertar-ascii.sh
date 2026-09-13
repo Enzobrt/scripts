@@ -1,4 +1,8 @@
 #!/bin/env bash
+# @vicinae.schemaVersion 1
+# @vicinae.title Insertar ASCII
+# @vicinae.mode silent
+# @vicinae.exec ["/usr/bin/env", "bash"]
 # Copiar y pegar caracteres ascii
 
 # Configurar teclado para que no haya problemas

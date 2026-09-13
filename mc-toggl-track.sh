@@ -1,11 +1,18 @@
 #!/run/current-system/sw/bin/bash
+# @vicinae.schemaVersion 1
+# @vicinae.title Minecraft Toggl Track
+# @vicinae.mode silent
+# @vicinae.exec ["/usr/bin/env", "bash"]
 
 TOGGL_TOKEN="8f8c4d8e6fd148018caef8909e617845"
 WORKSPACE_ID="21377382"
 AUTH=$(echo -n "$TOGGL_TOKEN:api_token" | base64)
 
 SCRIPT_DIR="/home/enzo/Documents/Programación/scripts"
-TIME_FILE="$SCRIPT_DIR/toggl_time.txt"
+TIME_FILE="$SCRIPT_DIR/toggl-time.txt"
+
+exec 9>"$SCRIPT_DIR/.mc_toggl.lock"
+flock -n 9 || { echo "Ya hay una instancia de mc_toggl_track en ejecución"; exit 1; }
 
 start_timer() {
     echo "Starting Toggl timer..."
@@ -29,7 +36,7 @@ update_timer() {
     PID=$(pgrep -af java | grep -E -- '--launchTarget|fml\.mcVersion|net\.minecraft' | head -n1 | cut -d' ' -f1)
 
     if [ -n "$PID" ]; then
-        ps -p "$PID" -o etime= > "/home/enzo/Documents/Programación/scripts/toggl_time.txt"
+        ps -p "$PID" -o etime= | tr -d '[:space:]' > "$TIME_FILE"
     fi
 }
 
@@ -49,7 +56,12 @@ stop_timer() {
         head -n1 |
         cut -d: -f2)
 
-    if [ -n "$ENTRY_ID" ]; then
+    ENTRY_DESC=$(echo "$ENTRY" |
+        grep -o '"description":"[^"]*"' |
+        head -n1 |
+        cut -d'"' -f4)
+
+    if [ -n "$ENTRY_ID" ] && [ "$ENTRY_DESC" = "Minecraft" ]; then
         curl -s -X PATCH \
             "https://api.track.toggl.com/api/v9/workspaces/$WORKSPACE_ID/time_entries/$ENTRY_ID/stop" \
             -H "Authorization: Basic $AUTH"

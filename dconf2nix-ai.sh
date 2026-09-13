@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+# @vicinae.schemaVersion 1
+# @vicinae.title Dconf2nix (AI)
+# @vicinae.mode fullOutput
+# @vicinae.exec ["/usr/bin/env", "bash"]
 
 set -euo pipefail
 
@@ -104,6 +108,11 @@ fi
 # - secciones repetidas => se fusionan
 # - clave repetida dentro de la misma sección => gana la última aparición
 # - no se elimina una sección entera solo porque tenga una clave problemática
+#
+# Además se descartan claves volátiles que no sobreviven al round-trip
+# dconf -> dconf2nix -> home-manager: home-manager vuelve a serializar el valor
+# a texto GVariant y GLib lo rechaza al activarse (p. ej. el weather de GNOME
+# Shell: "can not parse as value of type 'u'").
 python3 - "${RAW_DUMP}" "${NORMALIZED_DUMP}" <<'PY'
 from __future__ import annotations
 
@@ -114,6 +123,10 @@ from collections import OrderedDict
 src, dst = sys.argv[1:]
 section_re = re.compile(r"^\[([^\]]+)\]\s*$")
 key_re = re.compile(r"^([^=\s][^=]*)=(.*)$")
+
+BLOCKLIST = {
+    "org/gnome/shell/weather": {"locations"},
+}
 
 sections: "OrderedDict[str, OrderedDict[str, str]]" = OrderedDict()
 current: str | None = None
@@ -140,6 +153,20 @@ with open(src, "r", encoding="utf-8", newline="") as f:
             continue
 
         raise SystemExit(f"Sintaxis dconf inesperada en línea {lineno}: {line!r}")
+
+dropped: list[str] = []
+for section, values in sections.items():
+    for key in BLOCKLIST.get(section, ()):
+        if key in values:
+            del values[key]
+            dropped.append(f"[{section}] {key}")
+
+if dropped:
+    print(
+        "⚠️  Descartadas (no soportan el round-trip de home-manager): "
+        + ", ".join(dropped),
+        file=sys.stderr,
+    )
 
 with open(dst, "w", encoding="utf-8", newline="\n") as f:
     for section, values in sections.items():

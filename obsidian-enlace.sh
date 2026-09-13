@@ -1,4 +1,8 @@
 #!/bin/env bash
+# @vicinae.schemaVersion 1
+# @vicinae.title Enlazar Obsidian
+# @vicinae.mode silent
+# @vicinae.exec ["/usr/bin/env", "bash"]
 # Copiar y pegar un enlace de mis notas de Obsidian
 
 # Configurar teclado para que no haya problemas

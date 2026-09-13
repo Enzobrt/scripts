@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+# @vicinae.schemaVersion 1
+# @vicinae.title Actualizar NixOS
+# @vicinae.mode terminal
+# @vicinae.exec ["/usr/bin/env", "bash"]
 
 set -e
 
@@ -52,6 +56,8 @@ fi
 echo
 echo "✅ dry-build correcto."
 echo
+
+notify-send -e "NixOS dry-build correcto" "¿Quieres aplicar la configuración?" --icon=software-update-available
 
 read -rp "¿Quieres aplicar la configuración? [y/N] " answer
 

@@ -109,12 +109,6 @@ with lib.hm.gvariant;
       use-system-font = true;
     };
 
-    "org/gnome/Weather" = {
-      window-height = 268;
-      window-maximized = true;
-      window-width = 472;
-    };
-
     "org/gnome/baobab/ui" = {
       active-chart = "rings";
       is-maximized = true;
@@ -144,7 +138,7 @@ with lib.hm.gvariant;
     };
 
     "org/gnome/control-center" = {
-      last-panel = "multitasking";
+      last-panel = "sound";
       window-state = mkTuple [ 1061 640 false ];
     };
 
@@ -154,6 +148,7 @@ with lib.hm.gvariant;
 
     "org/gnome/desktop/a11y/magnifier" = {
       cross-hairs-length = 58;
+      mag-factor = 4.0;
     };
 
     "org/gnome/desktop/app-folders" = {
@@ -184,7 +179,7 @@ with lib.hm.gvariant;
     };
 
     "org/gnome/desktop/app-folders/folders/55f20195-5c50-4732-8fec-8e3d19e0669d" = {
-      apps = [ "com.mitchellh.ghostty.desktop" "org.gnome.Console.desktop" "lf.desktop" "btop.desktop" "xterm.desktop" "yazi.desktop" ];
+      apps = [ "com.mitchellh.ghostty.desktop" "org.gnome.Console.desktop" "lf.desktop" "btop.desktop" "xterm.desktop" "yazi.desktop" "rofi.desktop" "rofi-theme-selector.desktop" ];
       name = "Terminal bs";
       translate = false;
     };
@@ -371,7 +366,7 @@ with lib.hm.gvariant;
     };
 
     "org/gnome/desktop/peripherals/keyboard" = {
-      numlock-state = false;
+      numlock-state = true;
     };
 
     "org/gnome/desktop/peripherals/mouse" = {
@@ -414,6 +409,8 @@ with lib.hm.gvariant;
       maximize = [];
       switch-applications = [ "<Alt>Tab" ];
       switch-applications-backward = [ "<Shift><Alt>Tab" ];
+      switch-input-source = [];
+      switch-input-source-backward = [];
       switch-to-workspace-1 = [ "<Super>1" ];
       switch-to-workspace-2 = [ "<Super>2" ];
       switch-to-workspace-3 = [ "<Super>3" ];
@@ -485,7 +482,7 @@ with lib.hm.gvariant;
     "org/gnome/nautilus/window-state" = {
       initial-size = mkTuple [ 890 550 ];
       initial-size-file-chooser = mkTuple [ 890 550 ];
-      maximized = false;
+      maximized = true;
     };
 
     "org/gnome/nm-applet/eap/5b56895b-1b7d-4eaa-b503-0ec9df27c1dd" = {
@@ -598,7 +595,7 @@ with lib.hm.gvariant;
 
     "org/gnome/settings-daemon/plugins/media-keys" = {
       control-center = [ "<Super>x" ];
-      custom-keybindings = [ "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/" "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom2/" "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/" "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom3/" "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom4/" "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom5/" ];
+      custom-keybindings = [ "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/" "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom2/" "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/" "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom3/" "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom4/" "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom5/" "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom6/" ];
       logout = [];
       www = [ "<Super>b" ];
     };
@@ -639,6 +636,12 @@ with lib.hm.gvariant;
       name = "vicinae";
     };
 
+    "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom6" = {
+      binding = "<Super>w";
+      command = "/home/enzo/Documents/Programaci243n/scripts/wallpaper-switch.sh";
+      name = "change wallpaper";
+    };
+
     "org/gnome/settings-daemon/plugins/power" = {
       power-button-action = "interactive";
       sleep-inactive-ac-timeout = 3600;
@@ -655,10 +658,10 @@ with lib.hm.gvariant;
     };
 
     "org/gnome/shell" = {
-      command-history = [ "autoclicker-toggle" "impala" "ghostty -e wiremix" ];
+      command-history = [ "autoclicker-toggle" "impala" "ghostty -e wiremix" "/home/enzo/Documents/Programaci243n/scripts/wofi-file-browser.sh" ];
       disable-user-extensions = false;
       disabled-extensions = [ "workspace-bar@jguece" "lan-ip-address@mrhuber.com" ];
-      enabled-extensions = [ "appindicatorsupport@rgcjonas.gmail.com" "gsconnect@andyholmes.github.io" "caffeine@patapon.info" "media-keys@mafflin" "system-monitor-panel@naimur" "ResourceBuzzLite@hridoybuzz.dev" "emailmonitor@j-rambo.github.io" "syncthing@gnome.2nv2u.com" "top-bar-organizer@julian.gse.jsts.xyz" "openbar@neuromorph" "appindicatorsupport@rgcjonas.gmail.com" "gsconnect@andyholmes.github.io" "syncthing@gnome.2nv2u.com" "caffeine@patapon.info" "top-bar-organizer@julian.gse.jsts.xyz" "Resource_Monitor@Ory0n" "appindicatorsupport@rgcjonas.gmail.com" "lan-ip-address@mrhuber.com" "gsconnect@andyholmes.github.io" "syncthing@gnome.2nv2u.com" "caffeine@patapon.info" "Resource_Monitor@Ory0n" "top-bar-organizer@julian.gse.jsts.xyz" ];
+      enabled-extensions = [ "appindicatorsupport@rgcjonas.gmail.com" "gsconnect@andyholmes.github.io" "caffeine@patapon.info" "media-keys@mafflin" "system-monitor-panel@naimur" "ResourceBuzzLite@hridoybuzz.dev" "emailmonitor@j-rambo.github.io" "syncthing@gnome.2nv2u.com" "top-bar-organizer@julian.gse.jsts.xyz" "openbar@neuromorph" "appindicatorsupport@rgcjonas.gmail.com" "gsconnect@andyholmes.github.io" "syncthing@gnome.2nv2u.com" "caffeine@patapon.info" "top-bar-organizer@julian.gse.jsts.xyz" "Resource_Monitor@Ory0n" "appindicatorsupport@rgcjonas.gmail.com" "lan-ip-address@mrhuber.com" "gsconnect@andyholmes.github.io" "syncthing@gnome.2nv2u.com" "caffeine@patapon.info" "Resource_Monitor@Ory0n" "top-bar-organizer@julian.gse.jsts.xyz" "appindicatorsupport@rgcjonas.gmail.com" "lan-ip-address@mrhuber.com" "gsconnect@andyholmes.github.io" "syncthing@gnome.2nv2u.com" "caffeine@patapon.info" "Resource_Monitor@Ory0n" "top-bar-organizer@julian.gse.jsts.xyz" "appindicatorsupport@rgcjonas.gmail.com" "lan-ip-address@mrhuber.com" "syncthing@gnome.2nv2u.com" "caffeine@patapon.info" "Resource_Monitor@Ory0n" "top-bar-organizer@julian.gse.jsts.xyz" "appindicatorsupport@rgcjonas.gmail.com" "lan-ip-address@mrhuber.com" "syncthing@gnome.2nv2u.com" "caffeine@patapon.info" "Resource_Monitor@Ory0n" "top-bar-organizer@julian.gse.jsts.xyz" "appindicatorsupport@rgcjonas.gmail.com" "lan-ip-address@mrhuber.com" "syncthing@gnome.2nv2u.com" "caffeine@patapon.info" "Resource_Monitor@Ory0n" "top-bar-organizer@julian.gse.jsts.xyz" "crossmacro@zynix.net" ];
       favorite-apps = [];
       last-selected-power-profile = "power-saver";
       welcome-dialog-last-shown-version = "50.4";
@@ -678,7 +681,7 @@ with lib.hm.gvariant;
     };
 
     "org/gnome/shell/extensions/gsconnect" = {
-      devices = [ "7a5b479c4c3f4082acc761ca3546fd53" "c0b0c51d30f941608c3aa195c5e43211" "6212c78c4de34ae7b1258632c46093f9" ];
+      devices = [ "7a5b479c4c3f4082acc761ca3546fd53" "c0b0c51d30f941608c3aa195c5e43211" ];
       discoverable = true;
       missing-openssl = false;
       name = "nixos";
@@ -708,7 +711,7 @@ with lib.hm.gvariant;
 
     "org/gnome/shell/extensions/gsconnect/device/7a5b479c4c3f4082acc761ca3546fd53/plugin/notification" = {
       applications = ''
-        {"Printers":{"iconName":"org.gnome.Settings-printers-symbolic","enabled":true},"Events and Tasks Reminders":{"iconName":"org.gnome.Evolution-alarm-notify","enabled":true},"Pika Backup":{"iconName":"org.gnome.World.PikaBackup","enabled":true},"Zenity":{"iconName":"application-x-executable","enabled":true},"Disks":{"iconName":"org.gnome.DiskUtility","enabled":true},"Date & Time":{"iconName":"org.gnome.Settings-time-symbolic","enabled":true},"Online Accounts":{"iconName":"org.gnome.goa-daemon-symbolic","enabled":true},"Ghostty":{"iconName":"com.mitchellh.ghostty","enabled":true},"Disk Usage Analyzer":{"iconName":"org.gnome.baobab","enabled":true},"Power":{"iconName":"org.gnome.Settings-power-symbolic","enabled":true},"Console":{"iconName":"org.gnome.Console","enabled":true},"Color Management":{"iconName":"org.gnome.Settings-color-symbolic","enabled":true},"Files":{"iconName":"org.gnome.Nautilus","enabled":true},"Clocks":{"iconName":"org.gnome.clocks","enabled":true},"Pika Backup Monitor":{"iconName":"org.gnome.World.PikaBackup","enabled":true}}\n
+        {"Printers":{"iconName":"org.gnome.Settings-printers-symbolic","enabled":true},"Events and Tasks Reminders":{"iconName":"org.gnome.Evolution-alarm-notify","enabled":true},"Pika Backup":{"iconName":"org.gnome.World.PikaBackup","enabled":true},"Zenity":{"iconName":"application-x-executable","enabled":true},"Disks":{"iconName":"org.gnome.DiskUtility","enabled":true},"Date & Time":{"iconName":"org.gnome.Settings-time-symbolic","enabled":true},"Online Accounts":{"iconName":"org.gnome.goa-daemon-symbolic","enabled":true},"Ghostty":{"iconName":"com.mitchellh.ghostty","enabled":true},"Disk Usage Analyzer":{"iconName":"org.gnome.baobab","enabled":true},"Power":{"iconName":"org.gnome.Settings-power-symbolic","enabled":true},"Console":{"iconName":"org.gnome.Console","enabled":true},"Color Management":{"iconName":"org.gnome.Settings-color-symbolic","enabled":true},"Files":{"iconName":"org.gnome.Nautilus","enabled":true},"Clocks":{"iconName":"org.gnome.clocks","enabled":true},"Pika Backup Monitor":{"iconName":"org.gnome.World.PikaBackup","enabled":true}}\\\\\\\\\\\\\\\\n\\\\\\\\n\\\\n\\n\n
       '';
     };
 
@@ -751,7 +754,7 @@ with lib.hm.gvariant;
       balpha = 0.39;
       bartype = "Trilands";
       bcolor = [ "0.871" "0.616" "0.498" ];
-      bg-change = true;
+      bg-change = false;
       bgalpha = 0.0;
       bgalpha-wmax = 1.0;
       bgalpha2 = 0.9;
@@ -980,7 +983,7 @@ with lib.hm.gvariant;
       radius-bottomright = true;
       radius-topleft = true;
       radius-topright = true;
-      reloadstyle = true;
+      reloadstyle = false;
       removestyle = false;
       sbar-gradient = "none";
       set-bottom-margin = false;
@@ -1001,7 +1004,7 @@ with lib.hm.gvariant;
       success-color = [ "0.15" "0.635" "0.41" ];
       traffic-light = true;
       trigger-autotheme = true;
-      trigger-reload = false;
+      trigger-reload = true;
       use-system-accent = false;
       view-hint = 2;
       vpad = 2.9;
@@ -1031,15 +1034,15 @@ with lib.hm.gvariant;
       customleftclickstatus = "resources";
       diskdevicesdisplayall = true;
       diskdeviceslist = [ ''
-        {"version":2,"type":"disk","device":"/dev/nvme0n1p2","stableId":"/dev/disk/by-uuid/bd0f3464-e7ce-4c0a-8564-de87eacd1702","mountPoint":"/","stats":false,"space":false,"displayName":"/dev/nvme0n1p2"}
+        {"version":2,"type":"disk","device":"/dev/nvme0n1p2","stableId":"/dev/disk/by-uuid/bd0f3464-e7ce-4c0a-8564-de87eacd1702","mountPoint":"/","stats":false,"space":false,"displayName":"/dev/nvme0n1p2"}\\\\\\\\n\\\\n\\n\n
       '' ''
-        {"version":2,"type":"disk","device":"/dev/nvme0n1p2","stableId":"/dev/disk/by-uuid/bd0f3464-e7ce-4c0a-8564-de87eacd1702","mountPoint":"/nix/store","stats":false,"space":false,"displayName":"/dev/nvme0n1p2"}
+        {"version":2,"type":"disk","device":"/dev/nvme0n1p2","stableId":"/dev/disk/by-uuid/bd0f3464-e7ce-4c0a-8564-de87eacd1702","mountPoint":"/nix/store","stats":false,"space":false,"displayName":"/dev/nvme0n1p2"}\\\\\\\\n\\\\n\\n\n
       '' ''
-        {"version":2,"type":"disk","device":"/dev/nvme0n1p1","stableId":"/dev/disk/by-uuid/4342-37A9","mountPoint":"/boot","stats":false,"space":false,"displayName":"/dev/nvme0n1p1"}
+        {"version":2,"type":"disk","device":"/dev/nvme0n1p1","stableId":"/dev/disk/by-uuid/4342-37A9","mountPoint":"/boot","stats":false,"space":false,"displayName":"/dev/nvme0n1p1"}\\\\\\\\n\\\\n\\n\n
       '' ''
-        {"version":2,"type":"disk","device":"/dev/nvme0n1","stableId":"/dev/disk/by-id/nvme-Micron_MTFDKCD512QGN-1BN1AABLA_25465476450F","mountPoint":"","stats":false,"space":false,"displayName":"/dev/nvme0n1"}
+        {"version":2,"type":"disk","device":"/dev/nvme0n1","stableId":"/dev/disk/by-id/nvme-Micron_MTFDKCD512QGN-1BN1AABLA_25465476450F","mountPoint":"","stats":false,"space":false,"displayName":"/dev/nvme0n1"}\\\\\\\\n\\\\n\\n\n
       '' ''
-        {"version":2,"type":"disk","device":"/dev/nvme0n1p3","stableId":"/dev/disk/by-uuid/cb242bc3-1021-4631-9a0f-315a50d4a1e1","mountPoint":"","stats":false,"space":false,"displayName":"/dev/nvme0n1p3"}
+        {"version":2,"type":"disk","device":"/dev/nvme0n1p3","stableId":"/dev/disk/by-uuid/cb242bc3-1021-4631-9a0f-315a50d4a1e1","mountPoint":"","stats":false,"space":false,"displayName":"/dev/nvme0n1p3"}\\\\\\\\n\\\\n\\n\n
       '' ];
       diskshowdevicename = true;
       diskspacecolors = [ "0 0.8784313797950745 0.10588235408067703 0.1411764770746231" "15 1 0.47058823704719543 0" "30 0.9647058844566345 0.8274509906768799 0.1764705926179886" "50 0.18039216101169586 0.7607843279838562 0.4941176474094391" ];
@@ -1052,7 +1055,7 @@ with lib.hm.gvariant;
       displaymode = "primary";
       gpucolors = [ "65 0.9647058844566345 0.8274509906768799 0.1764705926179886" "80 1 0.47058823704719543 0" "92 0.8784313797950745 0.10588235408067703 0.1411764770746231" ];
       gpudeviceslist = [ ''
-        {"version":2,"type":"gpu","device":"amd:card2","name":"AMD GPU 0x1681","usage":false,"memory":false,"displayName":"AMD GPU 0x1681"}
+        {"version":2,"type":"gpu","device":"amd:card2","name":"AMD GPU 0x1681","usage":false,"memory":false,"displayName":"AMD GPU 0x1681"}\\\\\\\\n\\\\n\\n\n
       '' ];
       gpumemorycolors = [];
       gpumemorydecimals = 1;
@@ -1080,13 +1083,13 @@ with lib.hm.gvariant;
       swapwidth = 0;
       thermalcpucolors = [];
       thermalcputemperaturedeviceslist = [ ''
-        {"version":2,"type":"thermal-cpu","name":"k10temp: Tctl","monitor":false,"path":"/sys/class/hwmon/hwmon3/temp1_input"}
+        {"version":2,"type":"thermal-cpu","name":"k10temp: Tctl","monitor":false,"path":"/sys/class/hwmon/hwmon3/temp1_input"}\\\\\\\\n\\\\n\\n\n
       '' ];
       thermalcputemperaturestatus = true;
       thermalcputemperaturewidth = 0;
       thermalgpucolors = [];
       thermalgputemperaturedeviceslist = [ ''
-        {"version":2,"type":"thermal-gpu","device":"amd:card2","name":"AMD GPU 0x1681","monitor":false}
+        {"version":2,"type":"thermal-gpu","device":"amd:card2","name":"AMD GPU 0x1681","monitor":false}\\\\\\\\n\\\\n\\n\n
       '' ];
       thermalgputemperaturestatus = true;
     };

@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+# @vicinae.schemaVersion 1
+# @vicinae.title Dconf2nix
+# @vicinae.mode fullOutput
+# @vicinae.exec ["/usr/bin/env", "bash"]
 set -euo pipefail
 
 dconf dump / > /tmp/dconf.txt

@@ -1,3 +1,9 @@
+#!/usr/bin/env bash
+# @vicinae.schemaVersion 1
+# @vicinae.title Navegador de Archivos
+# @vicinae.mode silent
+# @vicinae.exec ["/usr/bin/env", "bash"]
+
 DIR=/home/enzo/
 cd $DIR
 

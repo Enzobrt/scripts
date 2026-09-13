@@ -1,1 +1,0 @@
-mpv av://v4l2:/dev/video0 --profile=low-latency --vf=hflip --untimed --no-correct-pts --opengl-glfinish=yes --no-audio --force-seekable=yes

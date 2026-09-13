@@ -1,3 +1,9 @@
+#!/usr/bin/env python3
+# @vicinae.schemaVersion 1
+# @vicinae.title Analizar Obsidian
+# @vicinae.mode fullOutput
+# @vicinae.exec ["/usr/bin/env", "python3"]
+
 import os
 from os import listdir
 from os.path import isfile

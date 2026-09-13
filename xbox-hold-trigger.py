@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+# @vicinae.schemaVersion 1
+# @vicinae.title Xbox Hold Trigger
+# @vicinae.mode silent
+# @vicinae.exec ["/usr/bin/env", "python3"]
 import evdev
 import subprocess
 import threading
@@ -18,7 +22,8 @@ EXPLICIT_PATHS = [
 HOLD_SECONDS = 3.0
 BUTTON_CODE = evdev.ecodes.BTN_MODE  # 316, confirmed via evtest
 
-COMMAND = ["/home/enzo/source/ES-DE/ES-DE_x64.AppImage"]
+#COMMAND = ["/home/enzo/source/ES-DE/ES-DE_x64.AppImage"]
+COMMAND = ["emulationstation-de"]
 
 
 def run_command():
