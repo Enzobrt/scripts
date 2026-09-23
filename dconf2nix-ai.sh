@@ -722,3 +722,4 @@ printf '   %s\n' "${OUTPUT_FILE}"
 printf '   %s\n' "Claves descartadas automáticamente: ${REMOVED_COUNT}"
 printf '%s\n' "   No se modificó nixos-update.sh ni se hizo git add."
 
+git add /etc/nixos/*
