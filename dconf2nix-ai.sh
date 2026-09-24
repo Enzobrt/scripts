@@ -128,6 +128,14 @@ BLOCKLIST = {
     "org/gnome/shell/weather": {"locations"},
 }
 
+# Secciones cuyo estado se gestiona desde módulos Home Manager declarativos
+# propios (home/programs/*.nix). El script no debe volver a generarlas en
+# dconf.nix, o habría claves duplicadas con esos módulos.
+PREFIX_BLOCKLIST = (
+    "org/gnome/deja-dup",
+    "org/gnome/shell/extensions/gsconnect",
+)
+
 sections: "OrderedDict[str, OrderedDict[str, str]]" = OrderedDict()
 current: str | None = None
 
@@ -156,6 +164,14 @@ with open(src, "r", encoding="utf-8", newline="") as f:
 
 dropped: list[str] = []
 for section, values in sections.items():
+    if any(
+        section == prefix or section.startswith(prefix + "/")
+        for prefix in PREFIX_BLOCKLIST
+    ):
+        for key in list(values):
+            del values[key]
+            dropped.append(f"[{section}] {key}")
+        continue
     for key in BLOCKLIST.get(section, ()):
         if key in values:
             del values[key]
@@ -168,12 +184,22 @@ if dropped:
         file=sys.stderr,
     )
 
+removed_sections: list[str] = []
 with open(dst, "w", encoding="utf-8", newline="\n") as f:
     for section, values in sections.items():
+        if not values:
+            removed_sections.append(section)
+            continue
         f.write(f"[{section}]\n")
         for key, value in values.items():
             f.write(f"{key}={value}\n")
         f.write("\n")
+
+if removed_sections:
+    print(
+        "⚠️  Secciones eliminadas por completo: " + ", ".join(removed_sections),
+        file=sys.stderr,
+    )
 PY
 
 remove_dump_line() {
