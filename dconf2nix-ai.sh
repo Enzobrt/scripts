@@ -132,7 +132,6 @@ BLOCKLIST = {
 # propios (home/programs/*.nix). El script no debe volver a generarlas en
 # dconf.nix, o habría claves duplicadas con esos módulos.
 PREFIX_BLOCKLIST = (
-    "org/gnome/deja-dup",
     "org/gnome/shell/extensions/gsconnect",
 )
 
@@ -746,6 +745,5 @@ FINAL_TMP=""
 printf '%s\n' "✅ dconf.nix generado correctamente"
 printf '   %s\n' "${OUTPUT_FILE}"
 printf '   %s\n' "Claves descartadas automáticamente: ${REMOVED_COUNT}"
-printf '%s\n' "   No se modificó nixos-update.sh ni se hizo git add."
 
 git add /etc/nixos/*
