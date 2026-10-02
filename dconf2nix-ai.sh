@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # @vicinae.schemaVersion 1
 # @vicinae.title Dconf2nix (AI)
-# @vicinae.mode fullOutput
+# @vicinae.mode terminal
 # @vicinae.exec ["/usr/bin/env", "bash"]
 
 set -euo pipefail
@@ -22,7 +22,11 @@ set -euo pipefail
 #      eliminar únicamente esa clave y repetir
 #   8. reemplazar el archivo real mediante rename atómico
 #
-# NO modifica nixos-update.sh y NO hace git add.
+# NO modifica nixos-update.sh. Solo hace `git add` del dconf.nix que genera, y
+# nunca de todo /etc/nixos.
+#
+# El modo de vicinae es `terminal` porque el dry-build necesita `sudo`, y `sudo`
+# solo puede pedir la contraseña si tiene una terminal detrás.
 
 readonly NIXOS_DIR="/etc/nixos"
 readonly OUTPUT_FILE="${NIXOS_DIR}/home/programs/dconf.nix"
@@ -32,6 +36,7 @@ readonly LOCK_DIR="${TMPDIR:-/tmp}/dconf2nix-${UID}.lock"
 WORK_DIR=""
 FINAL_TMP=""
 REMOVED_COUNT=0
+LOCK_OWNED=0
 
 cleanup() {
     local status=$?
@@ -41,7 +46,10 @@ cleanup() {
     if [[ -n "${WORK_DIR}" && -d "${WORK_DIR}" ]]; then
         rm -rf -- "${WORK_DIR}"
     fi
-    if [[ -d "${LOCK_DIR}" ]]; then
+    # Solo se suelta el lock si esta instancia lo ha adquirido; si abortamos
+    # porque otra instancia lo tiene, borrarle el lock rompería la exclusión
+    # mutua y dejaría dos generadores escribiendo el mismo dconf.nix.
+    if (( LOCK_OWNED )) && [[ -d "${LOCK_DIR}" ]]; then
         rm -rf -- "${LOCK_DIR}"
     fi
     exit "$status"
@@ -69,6 +77,7 @@ if ! mkdir -- "${LOCK_DIR}" 2>/dev/null; then
     rm -rf -- "${LOCK_DIR}"
     mkdir -- "${LOCK_DIR}" 2>/dev/null || fail "No se pudo adquirir el bloqueo ${LOCK_DIR}."
 fi
+LOCK_OWNED=1
 echo "$$" > "${LOCK_DIR}/pid"
 
 need_command dconf
@@ -311,14 +320,28 @@ print("ok")
 PY
 }
 
-# Obtiene la última localización que apunta al dconf.nix temporal desde un
-# error de NixOS/Home Manager. Para errores de duplicados suele haber dos
+# Los errores de Nix citan la copia que hace flake.nix en /nix/store
+# (...-source/home/programs/dconf.nix), no el árbol temporal, así que se
+# aceptan las dos formas. Para errores de duplicados suele haber dos
 # localizaciones; la última corresponde a la definición problemática más nueva.
+nix_source_path_pattern() {
+    local test_tree=$1
+    printf '%s' "(${test_tree//\//\/}|/nix/store/[^ '\"]+-source)/home/programs/dconf\.nix:[0-9]+:[0-9]+"
+}
+
+# Patrón más ancho: cualquier archivo .nix local (copia del store o árbol
+# temporal), para poder distinguir "el fallo es de dconf.nix" de "el fallo es de
+# otro archivo".
+nix_any_source_path_pattern() {
+    local test_tree=$1
+    printf '%s' "(${test_tree//\//\/}|/nix/store/[^ '\"]+-source)/[^ '\"]+\.nix:[0-9]+:[0-9]+"
+}
+
 extract_dconf_location() {
     local error_file=$1
     local test_tree=$2
 
-    grep -Eo "${test_tree//\//\/}/home/programs/dconf\.nix:[0-9]+:[0-9]+" "${error_file}" \
+    grep -Eo "$(nix_source_path_pattern "${test_tree}")" "${error_file}" \
         | tail -n1 \
         | sed -E 's/.*dconf\.nix:([0-9]+):([0-9]+)/\1 \2/'
 }
@@ -377,23 +400,50 @@ raise SystemExit(f"No se pudo mapear la línea Nix {target}.")
 PY
 }
 
-# Intenta extraer además una identidad "ruta"."clave" de mensajes de Nix,
-# útil especialmente para duplicate attributes.
+# Intenta extraer además una identidad "seccion"."clave" de mensajes de Nix,
+# útil especialmente para duplicate attributes y conflictos de definición.
+#
+# Solo se aceptan secciones que existen de verdad en el dump. Sin ese filtro el
+# análisis se cuelga del último '"algo".clave' del texto, que casi siempre es
+# basura del propio nixos-rebuild o de nixpkgs (por ejemplo
+# 'nixosConfigurations."nixos".config.system.build.toplevel').
 extract_dconf_attr_identity() {
     local error_file=$1
-    python3 - "${error_file}" <<'PY'
+    local dump_file=$2
+    python3 - "${error_file}" "${dump_file}" <<'PY'
 from __future__ import annotations
 
 import re
 import sys
 
 text = open(sys.argv[1], "r", encoding="utf-8", errors="replace").read()
-# Ejemplo: attribute '"org/gnome/foo".bar' already defined
-matches = re.findall(r'"([^"]+)"\.([A-Za-z0-9][A-Za-z0-9_-]*)', text)
-if matches:
-    section, key = matches[-1]
-    print(f"{section}\t{key}")
-    raise SystemExit(0)
+dump = open(sys.argv[2], "r", encoding="utf-8", errors="replace").read()
+
+known = set(re.findall(r"(?m)^\[([^\]]+)\]\s*$", dump))
+
+# Conflicto de definición de home-manager:
+#   The option `home-manager.users.enzo.dconf.settings."org/gnome/foo".bar' has
+#   conflicting definition values
+preferred_re = re.compile(r'dconf\.settings\."([^"]+)"\.([A-Za-z0-9][A-Za-z0-9_-]*)')
+# Duplicate attributes y similares:
+#   attribute '"org/gnome/foo".bar' already defined
+generic_re = re.compile(r'"([^"]+)"\.([A-Za-z0-9][A-Za-z0-9_-]*)')
+
+for section, key in reversed(preferred_re.findall(text)):
+    if section in known:
+        print(f"{section}\t{key}")
+        raise SystemExit(0)
+
+# Como respaldo, cualquier '"seccion".clave' pero solo en líneas que hablen del
+# dconf.nix generado.
+for line in reversed(text.splitlines()):
+    if "dconf.nix" not in line:
+        continue
+    m = generic_re.search(line)
+    if m and m.group(1) in known:
+        print(f"{m.group(1)}\t{m.group(2)}")
+        raise SystemExit(0)
+
 raise SystemExit(1)
 PY
 }
@@ -651,6 +701,30 @@ run_real_dry_build() {
     return 1
 }
 
+# Un fallo de sudo no es un error de dconf.nix: si no lo separemos, el script
+# intenta "reparar" el dconf.nix autoeliminando claves y, además, el mensaje que
+# ve el usuario culpa a un archivo que está perfectamente.
+sudo_failed() {
+    grep -qE '^sudo(:| )' "${NIX_ERROR_FILE}" 2>/dev/null
+}
+
+check_sudo() {
+    need_command sudo
+
+    # Credenciales ya cacheadas o regla NOPASSWD: funciona incluso sin terminal.
+    if sudo -n -v 2>/dev/null; then
+        return 0
+    fi
+
+    # Si no, hay que pedir la contraseña, que solo es posible con una terminal
+    # detrás (por eso el script se ejecuta en modo terminal de vicinae).
+    sudo -v || fail "No se pudo autenticar sudo, así que el dry-build no se puede validar.
+   O bien no hay terminal para pedir la contraseña, o bien has cancelado.
+   Alternativa: una regla NOPASSWD en /etc/sudoers.d para 'nixos-rebuild'."
+}
+
+check_sudo
+
 while true; do
     printf '%s\n' "→ Validando con nixos-rebuild dry-build en un árbol temporal..."
 
@@ -658,30 +732,41 @@ while true; do
         break
     fi
 
+    if sudo_failed; then
+        echo "❌ sudo no pudo ejecutar nixos-rebuild; el dconf.nix no se ha validado ni escrito." >&2
+        echo "   (si es lo de siempre, es que no hay terminal para pedir la contraseña)" >&2
+        cat "${NIX_ERROR_FILE}" >&2
+        exit 1
+    fi
+
     # Solo autoeliminamos cuando las localizaciones de archivos pertenecen al
-    # árbol temporal y, entre ellas, dconf.nix es el único archivo local citado.
-    # Así un fallo real de configuration.nix, flake.nix, etc. no se "cura"
-    # borrando dconf al azar.
-    local_refs=$(grep -Eo "${TEST_TREE//\//\/}/[^'\"[:space:]]+\.nix:[0-9]+:[0-9]+" "${NIX_ERROR_FILE}" \
+    # árbol temporal (o a su copia en el store) y, entre ellas, dconf.nix es el
+    # único archivo local citado. Así un fallo real de configuration.nix,
+    # flake.nix, theme.nix, etc. no se "cura" borrando dconf al azar.
+    local_refs=$(grep -Eo "$(nix_any_source_path_pattern "${TEST_TREE}")" "${NIX_ERROR_FILE}" \
         | sort -u || true)
 
     unsafe_ref=0
     while IFS= read -r ref; do
         [[ -z "${ref}" ]] && continue
         case "${ref}" in
-            "${TEST_TREE}/home/programs/dconf.nix:"*) ;;
+            */home/programs/dconf.nix:*) ;;
             *) unsafe_ref=1; break ;;
         esac
     done <<< "${local_refs}"
 
     if (( unsafe_ref != 0 )); then
         echo "❌ nixos-rebuild dry-build falló por una ruta que no pertenece inequívocamente a dconf.nix." >&2
+        echo "   Rutas citadas en el error:" >&2
+        while IFS= read -r bad_ref; do
+            [[ -z "${bad_ref}" ]] || printf '     %s\n' "${bad_ref}" >&2
+        done <<< "${local_refs}"
         cat "${NIX_ERROR_FILE}" >&2
         exit 1
     fi
 
     location=$(extract_dconf_location "${NIX_ERROR_FILE}" "${TEST_TREE}" || true)
-    identity=$(extract_dconf_attr_identity "${NIX_ERROR_FILE}" || true)
+    identity=$(extract_dconf_attr_identity "${NIX_ERROR_FILE}" "${NORMALIZED_DUMP}" || true)
 
     mapped=""
     if [[ -n "${identity}" ]]; then
@@ -724,8 +809,13 @@ while true; do
 done
 
 # Copia final en el mismo directorio y rename atómico.
+# Los permisos se aplican a FINAL_TMP (no al candidato): FINAL_TMP lo crea
+# mktemp con 0600 y `cp` NO cambia el modo de un destino que ya existe, así que
+# el rename dejaría el dconf.nix real en 0600.
 if [[ -e "${OUTPUT_FILE}" ]]; then
-    chmod --reference="${OUTPUT_FILE}" "${CANDIDATE_NIX}" 2>/dev/null || true
+    chmod --reference="${OUTPUT_FILE}" "${FINAL_TMP}" 2>/dev/null || true
+else
+    chmod 0644 -- "${FINAL_TMP}" 2>/dev/null || true
 fi
 cp --reflink=auto -- "${CANDIDATE_NIX}" "${FINAL_TMP}" 2>/dev/null || cp -- "${CANDIDATE_NIX}" "${FINAL_TMP}"
 
@@ -746,4 +836,16 @@ printf '%s\n' "✅ dconf.nix generado correctamente"
 printf '   %s\n' "${OUTPUT_FILE}"
 printf '   %s\n' "Claves descartadas automáticamente: ${REMOVED_COUNT}"
 
-git add /etc/nixos/*
+# Solo el archivo que este script acaba de escribir. Un `git add /etc/nixos/*`
+# stagearía también logs, borrados y cambios ajenos, y además fallaría con
+# "outside repository" si el script se ejecuta desde fuera del repo de NixOS.
+# Nunca debe hacer fallar el script: el dconf.nix ya está escrito y validado.
+if git -C "${NIXOS_DIR}" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    if git -C "${NIXOS_DIR}" add -- "${OUTPUT_FILE}"; then
+        printf '   %s\n' "Añadido al índice de ${NIXOS_DIR}"
+    else
+        printf '⚠️  No se pudo hacer git add de %s\n' "${OUTPUT_FILE}" >&2
+    fi
+else
+    printf '⚠️  %s no es un repositorio git; no se ha hecho git add.\n' "${NIXOS_DIR}" >&2
+fi
