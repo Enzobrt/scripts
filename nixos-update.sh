@@ -16,12 +16,15 @@ echo "======================================"
 echo
 
 # Check if there are changes in the configuration
-"
 if git diff --quiet && git diff --cached --quiet && [ -z "$(git status --porcelain)" ]; then
     echo "No configuration changes detected, exiting."
-    exit 0
+    read -rp "¿Continuar? [y/N] " answer
+
+    if [[ "$answer" != "y" && "$answer" != "Y" ]]; then
+        echo "Cancelado."
+        exit 0
+    fi
 fi
-"
 
 echo "Changes detected:"
 echo "$(git status --porcelain)"
