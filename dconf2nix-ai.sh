@@ -185,6 +185,26 @@ for section, values in sections.items():
             del values[key]
             dropped.append(f"[{section}] {key}")
 
+# dconf2nix trata "." igual que "/", así que el portal de archivos de GNOME
+# registra la misma app dos veces: una con puntos (p. ej. "app.drey.Warp") y
+# otra con barras ("app/drey/Warp"). Ambas colisionan en el MISMO atributo Nix
+# y generarían bloques duplicados. Se prefiere la forma con barras — la única
+# que home-manager escribe en dconf — y se descarta la variante con puntos
+# si existe su equivalente con barras.
+PORTAL_PREFIX = "org/gnome/portal/filechooser"
+for section in list(sections):
+    if not section.startswith(PORTAL_PREFIX + "/"):
+        continue
+    tail = section[len(PORTAL_PREFIX) + 1:]
+    if "." not in tail:
+        continue
+    slash_form = PORTAL_PREFIX + "/" + tail.replace(".", "/")
+    if slash_form != section and slash_form in sections:
+        del sections[section]
+        dropped.append(
+            f"[{section}] (misma app que [{slash_form}]; se prefiere la forma con barras)"
+        )
+
 if dropped:
     print(
         "⚠️  Descartadas (no soportan el round-trip de home-manager): "
@@ -465,13 +485,26 @@ src, dst = sys.argv[1:]
 text = open(src, "r", encoding="utf-8").read()
 
 def string_end(s, i):
-    quote = s[i]
+    c = s[i]
+    # Indented string de Nix (''...''): multilínea, termina en '' y usa '''
+    # como comilla escapada. Sin esto, matching_brace/merge malparentizan
+    # cualquier bloque que contenga uno (p. ej. gradia), tragándose el resto.
+    if c == "'" and i + 1 < len(s) and s[i + 1] == "'":
+        i += 2
+        while i + 1 < len(s):
+            if s[i:i + 3] == "'''":
+                i += 3
+                continue
+            if s[i:i + 2] == "''":
+                return i + 2
+            i += 1
+        raise ValueError("indented string Nix sin cerrar")
     i += 1
     while i < len(s):
         if s[i] == "\\":
             i += 2
             continue
-        if s[i] == quote:
+        if s[i] == c:
             return i + 1
         i += 1
     raise ValueError("cadena Nix sin cerrar")
